@@ -36,7 +36,7 @@ __all__ = [
     "UnicodeDammit",
     "CData",
     "Doctype",
-
+    # "SoupReplacer"
     # Exceptions
     "FeatureNotFound",
     "ParserRejectedMarkup",
@@ -50,6 +50,7 @@ __all__ = [
     "XMLParsedAsHTMLWarning",
 ]
 
+from codecs import replace_errors
 from collections import Counter
 import sys
 import warnings
@@ -207,16 +208,36 @@ class BeautifulSoup(Tag):
     contains_replacement_characters: bool
 
     def __init__(
-        self,
-        markup: _IncomingMarkup = "",
-        features: Optional[Union[str, Sequence[str]]] = None,
-        builder: Optional[Union[TreeBuilder, Type[TreeBuilder]]] = None,
-        parse_only: Optional[SoupStrainer] = None,
-        from_encoding: Optional[_Encoding] = None,
-        exclude_encodings: Optional[_Encodings] = None,
-        element_classes: Optional[Dict[Type[PageElement], Type[PageElement]]] = None,
-        **kwargs: Any,
+            self,
+            markup="",
+            features=None,
+            builder=None,
+            parse_only=None,
+            from_encoding=None,
+            exclude_encodings=None,
+            element_classes=None,
+            replacer=None,
+            **kwargs
     ):
+        self.replacer = replacer
+
+        if isinstance(builder, type):
+            builder = builder()
+        if builder is None:
+            builder_class = builder_registry.lookup(features)
+            if builder_class is None:
+                raise FeatureNotFound(
+                    "Couldn't find a tree builder with the features you requested: %s"
+                    % features
+                )
+            builder = builder_class()
+        self.builder = builder
+        self.is_xml = builder.is_xml
+
+        self.reset()
+        self.hidden = 1
+        self.parse_only = parse_only
+        self.builder.initialize_soup(self)
         """Constructor.
 
         :param markup: A string or a file-like object representing

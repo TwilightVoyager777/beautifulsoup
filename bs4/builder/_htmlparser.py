@@ -139,12 +139,13 @@ class BeautifulSoupHTMLParser(HTMLParser, DetectsXMLParsedAsHTML):
         self.handle_starttag(name, attrs, handle_empty_element=False)
         self.handle_endtag(name)
 
-    def handle_starttag(
-        self,
-        name: str,
-        attrs: List[Tuple[str, Optional[str]]],
-        handle_empty_element: bool = True,
-    ) -> None:
+    # def handle_starttag(
+    #     self,
+    #     name: str,
+    #     attrs: List[Tuple[str, Optional[str]]],
+    #     handle_empty_element: bool = True,
+    # ) -> None:
+    def handle_starttag(self, name, attrs, namespace=None):
         """Handle an opening tag, e.g. '<tag>'
 
         :param handle_empty_element: True if this tag is known to be
@@ -152,6 +153,12 @@ class BeautifulSoupHTMLParser(HTMLParser, DetectsXMLParsedAsHTML):
             closing tag).
         """
         # TODO: handle namespaces here?
+        if hasattr(self.soup, "replacer") and self.soup.replacer:
+            name = self.soup.replacer.replace(name)
+
+        tag = self.soup.handle_starttag(name, namespace, None, attrs)
+        self.current_data = None
+        return tag
         attr_dict: AttributeDict = self.attribute_dict_class()
         for key, value in attrs:
             # Change None attribute values to the empty string

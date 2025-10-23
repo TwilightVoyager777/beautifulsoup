@@ -101,3 +101,7 @@ Runtime:  28.60s user 7.22s system 54% cpu 1:06.08 total
 
 ---
 
+## Milestone 2 — Part 3 : SoupReplacer
+```bash
+  python apps/m2/task6.py apps/Posts.xml
+```

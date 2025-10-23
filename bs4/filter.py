@@ -1,6 +1,7 @@
 from __future__ import annotations
 from collections import defaultdict
 import re
+from ctypes.wintypes import tagMSG
 from typing import (
     Any,
     Callable,
@@ -680,3 +681,25 @@ class SoupStrainer(ElementFilter):
         :meta private:
         """
         return element if self.match(element) else None
+# Change actions should be performed by an object similar to SoupStrainer called SoupReplacer.
+# Just like SoupStrainer, SoupReplacer should be given as an optional argument to the constructor of BeautifulSoup.
+# For the purposes of this Milestone, let’s make the API of SoupReplacer very simple. Implement one constructor for it with the following signature:
+# SoupReplacer(og-tag, alt-tag)
+# This constructor specifies that all occurrences of og-tag should be replaced by alt-tag. Here is an example of how to use SoupReplacer:
+# b_to_blockquote = SoupReplacer(“b”, “blockquote”)
+# print(BeautifulSoup(html_doc, replacer=b_to_blockquote).prettify())
+# Make all necessary changes to the source code of BeautifulSoup so that the replacement happens during parsing.
+# Write 2 new test cases to test your new API.
+# Write one application program that implements task-6 of Milestone-1, but now exercising SoupReplacer.
+class SoupReplacer(ElementFilter):
+    def __init__(self, on_tag, alt_tag):
+        self.on_tag = on_tag
+        self.alt_tag = alt_tag
+
+    def replace(self, name: str) -> str :
+        if name == self.on_tag:
+            return self.alt_tag
+        return name
+
+
+
