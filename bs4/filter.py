@@ -692,9 +692,12 @@ class SoupStrainer(ElementFilter):
 # Write 2 new test cases to test your new API.
 # Write one application program that implements task-6 of Milestone-1, but now exercising SoupReplacer.
 class SoupReplacer(ElementFilter):
-    def __init__(self, on_tag, alt_tag):
+    def __init__(self, on_tag=None, alt_tag=None, name_xformer=None, attrs_xformer=None, xformer=None):
         self.on_tag = on_tag
         self.alt_tag = alt_tag
+        self.name_xformer = name_xformer
+        self.attrs_xformer = attrs_xformer
+        self.xformer = xformer
 
     def replace(self, name: str) -> str :
         if name == self.on_tag:

@@ -145,7 +145,7 @@ class BeautifulSoupHTMLParser(HTMLParser, DetectsXMLParsedAsHTML):
     #     attrs: List[Tuple[str, Optional[str]]],
     #     handle_empty_element: bool = True,
     # ) -> None:
-    def handle_starttag(self, name, attrs, namespace=None):
+    def handle_starttag(self, name, attrs, namespace=None, handle_empty_element=True):
         """Handle an opening tag, e.g. '<tag>'
 
         :param handle_empty_element: True if this tag is known to be
@@ -156,9 +156,6 @@ class BeautifulSoupHTMLParser(HTMLParser, DetectsXMLParsedAsHTML):
         if hasattr(self.soup, "replacer") and self.soup.replacer:
             name = self.soup.replacer.replace(name)
 
-        tag = self.soup.handle_starttag(name, namespace, None, attrs)
-        self.current_data = None
-        return tag
         attr_dict: AttributeDict = self.attribute_dict_class()
         for key, value in attrs:
             # Change None attribute values to the empty string
@@ -189,6 +186,21 @@ class BeautifulSoupHTMLParser(HTMLParser, DetectsXMLParsedAsHTML):
         tag = self.soup.handle_starttag(
             name, None, None, attr_dict, sourceline=sourceline, sourcepos=sourcepos
         )
+
+
+        replacer = getattr(self.soup, "replacer", None)
+        if replacer and tag is not None:
+            if callable(getattr(replacer, "name_xformer", None)) and replacer.name_xformer:
+                tag.name = replacer.name_xformer(tag)
+            if callable(getattr(replacer, "attrs_xformer", None)) and replacer.attrs_xformer:
+                tag.attrs = replacer.attrs_xformer(tag)
+            if callable(getattr(replacer, "xformer", None)) and replacer.xformer:
+                replacer.xformer(tag)
+            elif getattr(replacer, "og_tag", None) and getattr(replacer, "alt_tag", None):
+                if tag.name == replacer.og_tag:
+                    tag.name = replacer.alt_tag
+
+        handle_empty_element = True
         if tag and tag.is_empty_element and handle_empty_element:
             # Unlike other parsers, html.parser doesn't send separate end tag
             # events for empty-element tags. (It's handled in
@@ -207,6 +219,8 @@ class BeautifulSoupHTMLParser(HTMLParser, DetectsXMLParsedAsHTML):
 
         if self._root_tag_name is None:
             self._root_tag_encountered(name)
+        self.current_data = None
+        return tag
 
     def handle_endtag(self, name: str, check_already_closed: bool = True) -> None:
         """Handle a closing tag, e.g. '</tag>'
