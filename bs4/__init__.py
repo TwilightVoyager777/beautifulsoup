@@ -1164,25 +1164,24 @@ class BeautifulSoup(Tag):
         )
 
     def __iter__(self):
-        """Depth-first traversal of the DOM tree, skipping [document] and name=None tags."""
-        stack = list(reversed(self.contents))
 
-        while stack:
-            node = stack.pop()
-
+        def dfs(node):
             if node is None:
-                continue
+                return
 
-            # Skip tag-like nodes with name=None (these produce node.name == None in your test)
             if isinstance(node, Tag) and node.name is None:
-                continue
+                return
 
             yield node
 
             if hasattr(node, "contents") and node.contents:
-                for child in reversed(node.contents):
+                for child in node.contents:
                     if child is not None:
-                        stack.append(child)
+                        yield from dfs(child)
+
+        for child in self.contents:
+            if child is not None:
+                yield from dfs(child)
 
 # Aliases to make it easier to get started quickly, e.g. 'from bs4 import _soup'
 _s = BeautifulSoup
