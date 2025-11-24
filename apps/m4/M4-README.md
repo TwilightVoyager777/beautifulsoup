@@ -11,8 +11,10 @@ BeautifulSoup.__iter__(self)
 
 in __init__.py.
 
-This method performs a DFS traversal by using an explicit stack. Tag nodes,
-text nodes, and comments are all produced one by one.
+This method performs a DFS traversal using a recursive generator.
+Each node (tags, text nodes, and comments) is yielded one at a time during
+traversal. No lists, stacks, or intermediate collections are created—
+the iteration is fully streaming.
 
 ### Test
 ```bash
